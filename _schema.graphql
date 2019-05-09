@@ -2962,6 +2962,9 @@ type CommerceBuyOrder implements CommerceOrder {
   updatedAt: CommerceDateTime!
   buyerDetails: OrderParty
   sellerDetails: OrderParty
+
+  # Credit card on this order
+  creditCard: CreditCard
   itemsTotal(
     decimal: String = "."
 
@@ -3179,6 +3182,12 @@ type CommerceFulfillment {
   notes: String
   trackingId: String
   updatedAt: CommerceDateTime!
+  _estimatedDelivery(
+    # This arg is deprecated, use timezone instead
+    convert_to_utc: Boolean
+    format: String
+    timezone: String
+  ): String
 }
 
 # Attributes of a Fulfillment
@@ -3341,6 +3350,12 @@ type CommerceOffer {
     symbol: String
     thousand: String = ","
   ): String
+  _createdAt(
+    # This arg is deprecated, use timezone instead
+    convert_to_utc: Boolean
+    format: String
+    timezone: String
+  ): String
 }
 
 # The connection type for Offer.
@@ -3430,6 +3445,9 @@ type CommerceOfferOrder implements CommerceOrder {
   updatedAt: CommerceDateTime!
   buyerDetails: OrderParty
   sellerDetails: OrderParty
+
+  # Credit card on this order
+  creditCard: CreditCard
   itemsTotal(
     decimal: String = "."
 
@@ -3632,6 +3650,7 @@ interface CommerceOrder {
     symbol: String
     thousand: String = ","
   ): String
+  creditCard: CreditCard
 }
 
 # Fields to sort by

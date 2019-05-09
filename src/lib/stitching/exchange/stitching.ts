@@ -1,6 +1,8 @@
 import { GraphQLSchema } from "graphql"
 import { amountSDL, amount } from "schema/fields/money"
 import gql from "lib/gql"
+import { date } from "schema/fields/date"
+import { CreditCard } from "schema/credit_card"
 
 const orderTotals = [
   "itemsTotal",
@@ -133,6 +135,7 @@ export const exchangeStitchingEnvironment = (
     extend type CommerceBuyOrder {
       buyerDetails: OrderParty
       sellerDetails: OrderParty
+      creditCard: CreditCard
 
       ${orderTotalsSDL.join("\n")}
     }
@@ -140,6 +143,7 @@ export const exchangeStitchingEnvironment = (
     extend type CommerceOfferOrder {
       buyerDetails: OrderParty
       sellerDetails: OrderParty
+      creditCard: CreditCard
 
       ${orderTotalsSDL.join("\n")}
       ${amountSDL("offerTotal")}
@@ -150,11 +154,29 @@ export const exchangeStitchingEnvironment = (
       sellerDetails: OrderParty
 
       ${orderTotalsSDL.join("\n")}
+
+      creditCard: CreditCard
+    }
+
+    extend type CommerceFulfillment {
+      _estimatedDelivery(
+        # This arg is deprecated, use timezone instead
+        convert_to_utc: Boolean
+        format: String
+        timezone: String
+      ): String
     }
 
     extend type CommerceOffer {
       fromDetails: OrderParty
       ${offerAmountFieldsSDL.join("\n")}
+
+      _createdAt(
+        # This arg is deprecated, use timezone instead
+        convert_to_utc: Boolean
+        format: String
+        timezone: String
+      ): String
     }
   `,
 
@@ -165,11 +187,27 @@ export const exchangeStitchingEnvironment = (
         ...totalsResolvers("CommerceBuyOrder", orderTotals),
         buyerDetails: buyerDetailsResolver,
         sellerDetails: sellerDetailsResolver,
+        creditCard: {
+          type: CreditCard.type,
+          description: "Credit card on this order",
+          resolve: ({ creditCardId }, _args, { creditCardLoader }) =>
+            creditCardId && creditCardLoader
+              ? creditCardLoader(creditCardId)
+              : null,
+        },
       },
       CommerceOfferOrder: {
         ...totalsResolvers("CommerceOfferOrder", orderTotals),
         buyerDetails: buyerDetailsResolver,
         sellerDetails: sellerDetailsResolver,
+        creditCard: {
+          type: CreditCard.type,
+          description: "Credit card on this order",
+          resolve: ({ creditCardId }, _args, { creditCardLoader }) =>
+            creditCardId && creditCardLoader
+              ? creditCardLoader(creditCardId)
+              : null,
+        },
       },
       CommerceLineItem: {
         artwork: {
@@ -211,6 +249,10 @@ export const exchangeStitchingEnvironment = (
       CommerceOffer: {
         ...totalsResolvers("CommerceOffer", offerAmountFields),
         fromDetails: fromDetailsResolver,
+        _createdAt: date,
+      },
+      CommerceFulfillment: {
+        _estimatedDelivery: date,
       },
     },
   }
