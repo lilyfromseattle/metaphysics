@@ -1,8 +1,8 @@
-import { GraphQLSchema } from "graphql"
+import { GraphQLSchema, GraphQLNonNull, GraphQLString } from "graphql"
 import { amountSDL, amount } from "schema/fields/money"
 import gql from "lib/gql"
 import { date } from "schema/fields/date"
-import { CreditCard } from "schema/credit_card"
+import { CreditCard, CreditCardType } from "schema/credit_card"
 
 const orderTotals = [
   "itemsTotal",
@@ -14,6 +14,17 @@ const orderTotals = [
   "shippingTotal",
   "transactionFee",
 ]
+
+const creditCardField = {
+  fragment: gql`
+  ... on CommerceOrder {
+    creditCardId
+  }
+`,
+  resolve: ({ creditCardId }, _args, { creditCardLoader }) =>
+    creditCardId && creditCardLoader ? creditCardLoader(creditCardId) : null,
+}
+
 const orderTotalsSDL = orderTotals.map(amountSDL)
 
 const lineItemTotals = ["shippingTotal", "listPrice", "commissionFee"]
@@ -187,27 +198,13 @@ export const exchangeStitchingEnvironment = (
         ...totalsResolvers("CommerceBuyOrder", orderTotals),
         buyerDetails: buyerDetailsResolver,
         sellerDetails: sellerDetailsResolver,
-        creditCard: {
-          type: CreditCard.type,
-          description: "Credit card on this order",
-          resolve: ({ creditCardId }, _args, { creditCardLoader }) =>
-            creditCardId && creditCardLoader
-              ? creditCardLoader(creditCardId)
-              : null,
-        },
+        creditCard: creditCardField,
       },
       CommerceOfferOrder: {
         ...totalsResolvers("CommerceOfferOrder", orderTotals),
         buyerDetails: buyerDetailsResolver,
         sellerDetails: sellerDetailsResolver,
-        creditCard: {
-          type: CreditCard.type,
-          description: "Credit card on this order",
-          resolve: ({ creditCardId }, _args, { creditCardLoader }) =>
-            creditCardId && creditCardLoader
-              ? creditCardLoader(creditCardId)
-              : null,
-        },
+        creditCard: creditCardField,
       },
       CommerceLineItem: {
         artwork: {
