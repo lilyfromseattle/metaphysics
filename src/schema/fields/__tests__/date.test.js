@@ -1,4 +1,4 @@
-import dateField, { date } from "schema/fields/date"
+import dateField, { date, isoDate } from "schema/fields/date"
 
 describe("date", () => {
   const rawDate = "2020-12-31T12:00:00+00:00"
@@ -25,6 +25,21 @@ describe("date", () => {
       "12/31/2020 5:00 -07:00"
     )
     expect(date(rawDate, format, "Pacific/Fiji")).toBe("1/1/2021 1:00 +13:00")
+  })
+
+  it("works with YYYY-MM-DD format", () => {
+    expect(date("1987-12-04", format, "Europe/London")).toMatchInlineSnapshot(
+      `"12/4/1987 12:00 +00:00"`
+    )
+
+    // bad month
+    expect(date("1987-14-04", format, "Europe/London")).toMatchInlineSnapshot(
+      `"Invalid date"`
+    )
+  })
+
+  it("preserves dates if not formatted", () => {
+    expect(date("1987-04-12")).toMatchInlineSnapshot(`"1987-04-12"`)
   })
 })
 

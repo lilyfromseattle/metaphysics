@@ -1,8 +1,7 @@
-import { GraphQLSchema, GraphQLNonNull, GraphQLString } from "graphql"
+import { GraphQLSchema } from "graphql"
 import { amountSDL, amount } from "schema/fields/money"
 import gql from "lib/gql"
-import { date } from "schema/fields/date"
-import { CreditCard, CreditCardType } from "schema/credit_card"
+import dateField from "schema/fields/date"
 
 const orderTotals = [
   "itemsTotal",
@@ -170,7 +169,7 @@ export const exchangeStitchingEnvironment = (
     }
 
     extend type CommerceFulfillment {
-      _estimatedDelivery(
+      estimatedDeliveryDate(
         # This arg is deprecated, use timezone instead
         convert_to_utc: Boolean
         format: String
@@ -182,7 +181,7 @@ export const exchangeStitchingEnvironment = (
       fromDetails: OrderParty
       ${offerAmountFieldsSDL.join("\n")}
 
-      _createdAt(
+      createdAtDate(
         # This arg is deprecated, use timezone instead
         convert_to_utc: Boolean
         format: String
@@ -246,10 +245,35 @@ export const exchangeStitchingEnvironment = (
       CommerceOffer: {
         ...totalsResolvers("CommerceOffer", offerAmountFields),
         fromDetails: fromDetailsResolver,
-        _createdAt: date,
+        createdAtDate: {
+          fragment: gql`
+            fragment CommerceOfferCreatedAt on CommerceOffer {
+              createdAt
+            }
+          `,
+          resolve: (obj, args, context) => {
+            // @ts-ignore
+            return dateField.resolve(obj, args, context, {
+              fieldName: "createdAt",
+            })
+          },
+        },
       },
       CommerceFulfillment: {
-        _estimatedDelivery: date,
+        estimatedDeliveryDate: {
+          fragment: gql`
+            fragment CommerceFulfillmentEstimatedDelivery on CommerceFulfillment {
+              estimatedDelivery
+            }
+          `,
+          resolve: (obj, args, context) => {
+            // YYYY-MM-DD
+            // @ts-ignore
+            return dateField.resolve(obj, args, context, {
+              fieldName: "estimatedDelivery",
+            })
+          },
+        },
       },
     },
   }

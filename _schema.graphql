@@ -3180,7 +3180,7 @@ type CommerceFulfillment {
   notes: String
   trackingId: String
   updatedAt: CommerceDateTime!
-  _estimatedDelivery(
+  estimatedDeliveryDate(
     # This arg is deprecated, use timezone instead
     convert_to_utc: Boolean
     format: String
@@ -3348,7 +3348,7 @@ type CommerceOffer {
     symbol: String
     thousand: String = ","
   ): String
-  _createdAt(
+  createdAtDate(
     # This arg is deprecated, use timezone instead
     convert_to_utc: Boolean
     format: String
